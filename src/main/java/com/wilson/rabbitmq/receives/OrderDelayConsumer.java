@@ -11,6 +11,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * 类注释
  * @author wilson wei
@@ -22,9 +25,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OrderDelayConsumer {
 
+
     @RabbitHandler
     public void orderConsumer(Message message){
 
+        // 消息发送时间
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        log.info("消息接收时间为: {}", sdf.format(new Date()));
         // 接收到处理队列中的消息的，就是指定时间过期的消息
         // 这里处理每一条消息中的订单编号，去查询对应的订单支付状态，如果处于未支付状态，就取消用户的订单
         try {

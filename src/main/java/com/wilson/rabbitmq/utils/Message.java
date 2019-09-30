@@ -3,7 +3,7 @@
  */
 package com.wilson.rabbitmq.utils;
 
-import io.swagger.annotations.ApiModelProperty;
+//import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class Message implements Serializable {
 
-    @ApiModelProperty(name = "消息id")
+//    @ApiModelProperty(name = "消息id")
     private Integer id;
 
-    @ApiModelProperty(name = "消息内容", dataType = "String", required = true, example = "这是一个测试过期时间为3分钟的消息")
+//    @ApiModelProperty(name = "消息内容", dataType = "String", required = true, example = "这是一个测试过期时间为3分钟的消息")
     private String content;
 
-    @ApiModelProperty(name = "过期时间", dataType = "Long", required = true)
+//    @ApiModelProperty(name = "过期时间", dataType = "Long", required = true)
     private Long ttl;
 
     /**

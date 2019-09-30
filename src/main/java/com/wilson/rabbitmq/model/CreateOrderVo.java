@@ -3,14 +3,12 @@
  */
 package com.wilson.rabbitmq.model;
 
+//import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
  * 下订单
- * @author wilson wei
- * @version 1.0
- * @since 2018/8/19 11:19
  */
 @Data
 public class CreateOrderVo {
