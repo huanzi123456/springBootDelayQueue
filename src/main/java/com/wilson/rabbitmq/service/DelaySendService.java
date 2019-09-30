@@ -11,6 +11,8 @@ import com.wilson.rabbitmq.utils.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +28,10 @@ import java.util.Date;
  */
 @Service
 @Slf4j
-public class DelaySendService {
+public class DelaySendService implements RabbitTemplate.ReturnCallback{
 
     @Autowired
-    private AmqpTemplate rabbitTemplate;
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 发送延时消息，每个消息都自己有自己的过期时间
@@ -44,8 +46,17 @@ public class DelaySendService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         log.info("消息发送时间为: {}", sdf.format(new Date()));
 
-        // 设置发送时间，开始发送
+        // 设置发送时间，开始发送,消息设置ack确认机制
         try {
+            this.rabbitTemplate.setReturnCallback(this);
+            this.rabbitTemplate.setConfirmCallback((CorrelationData correlationData, boolean ack, String cause) -> {
+                if (!ack) {
+                    log.error("PushProvider消息发送失败 {},  {}", cause, correlationData.toString());
+                } else {
+                    log.info("PushProvider 消息发送成功 ");
+                }
+            });
+
             rabbitTemplate.convertAndSend(RabbitConfig.DELAY_EXCHANGE, RabbitConfig.DELAY_ROUTING_KEY, msg,
                     message -> {
                         message.getMessageProperties().setExpiration(String.valueOf(msg.getTtl()));
@@ -60,9 +71,6 @@ public class DelaySendService {
     /**
      * 发送消息，至指定过期时间的队列中。
      * 适用于一些定时任务
-     * @param msg
-     * @author wilson wei
-     * @date 10:40 2018/8/19
      */
     public void sendDelayQueueMessage(Message msg) {
 
@@ -72,10 +80,24 @@ public class DelaySendService {
 
         // 设置发送时间，开始发送
         try {
+            this.rabbitTemplate.setReturnCallback(this);
+            this.rabbitTemplate.setConfirmCallback((CorrelationData correlationData, boolean ack, String cause) -> {
+                if (!ack) {
+                    log.error("PushProvider消息发送失败 {},  {}", cause, correlationData.toString());
+                } else {
+                    log.info("PushProvider 消息发送成功 ");
+                }
+            });
             rabbitTemplate.convertAndSend(RabbitConfig.DELAY_QUEUE_EXCHANGE, RabbitConfig.DELAY_ROUTING_KEY, msg);
         } catch (AmqpException e) {
             log.error("消息发送失败，请检查消息中间件是否正常", JSONObject.toJSONString(msg));
             throw new SystemException(ErrorCodeEnum.UNKNOWING_ERROR);
         }
+    }
+
+    //消息成功回调
+    @Override
+    public void returnedMessage(org.springframework.amqp.core.Message message, int i, String s, String s1, String s2) {
+        System.out.println("sender return success" + message.toString() + "===" + i + "===" + s1 + "===" + s2);
     }
 }
